@@ -169,6 +169,63 @@ public interface CommandClient
     void addCommand(Command command, int index);
 
     /**
+     * Adds a single {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand} to this CommandClient's
+     * registered SlashCommand.
+     *
+     * <p>For CommandClient's containing 20 commands or less, command calls by users will have the bot iterate
+     * through the entire {@link java.util.ArrayList ArrayList} to find the command called. As expected, this
+     * can get fairly hefty if a bot has a lot of Commands registered to it.
+     *
+     * <p>To prevent delay a CommandClient that has more that 20 Commands registered to it will begin to use
+     * <b>indexed calls</b>.
+     * <br>Indexed calls use a {@link java.util.HashMap HashMap} which links their
+     * {@link com.jagrosh.jdautilities.command.SlashCommand#name name} to the index that which they
+     * are located at in the ArrayList they are stored.
+     *
+     * <p>This means that all insertion and removal of SlashCommands must reorganize the index maintained by the HashMap.
+     * <br>For this particular insertion, the SlashCommand provided is inserted at the end of the index, meaning it will
+     * become the "rightmost" Command in the ArrayList.
+     *
+     * @param  command
+     *         The Command to add
+     *
+     * @throws java.lang.IllegalArgumentException
+     *         If the SlashCommand provided has a name or alias that has already been registered
+     */
+    void addSlashCommand(SlashCommand command);
+
+    /**
+     * Adds a single {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand} to this CommandClient's
+     * registered Commands at the specified index.
+     *
+     * <p>For CommandClient's containing 20 commands or less, command calls by users will have the bot iterate
+     * through the entire {@link java.util.ArrayList ArrayList} to find the command called. As expected, this
+     * can get fairly hefty if a bot has a lot of Commands registered to it.
+     *
+     * <p>To prevent delay a CommandClient that has more that 20 Commands registered to it will begin to use
+     * <b>indexed calls</b>.
+     * <br>Indexed calls use a {@link java.util.HashMap HashMap} which links their
+     * {@link com.jagrosh.jdautilities.command.Command#name name} to the index that which they
+     * are located at in the ArrayList they are stored.
+     *
+     * <p>This means that all insertion and removal of Commands must reorganize the index maintained by the HashMap.
+     * <br>For this particular insertion, the Command provided is inserted at the index specified, meaning it will
+     * become the Command located at that index in the ArrayList. This will shift the Command previously located at
+     * that index as well as any located at greater indices, right one index ({@code size()+1}).
+     *
+     * @param  command
+     *         The Command to add
+     * @param  index
+     *         The index to add the Command at (must follow the specifications {@code 0<=index<=size()})
+     *
+     * @throws java.lang.ArrayIndexOutOfBoundsException
+     *         If {@code index < 0} or {@code index > size()}
+     * @throws java.lang.IllegalArgumentException
+     *         If the Command provided has a name or alias that has already been registered to an index
+     */
+    void addSlashCommand(SlashCommand command, int index);
+
+    /**
      * Removes a single {@link com.jagrosh.jdautilities.command.Command Command} from this CommandClient's
      * registered Commands at the index linked to the provided name/alias.
      *

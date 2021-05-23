@@ -68,12 +68,15 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 public abstract class Command
 {
     /**
-     * The name of the command, allows the command to be called the format: {@code [prefix]<command name>}.
+     * The name of the command, allows the command to be called the formats: <br>
+     * Normal Command: {@code [prefix]<command name>}. <br>
+     * Slash Command: {@code /<command name>}
      */
     protected String name = "null";
     
     /**
-     * A small help String that summarizes the function of the command, used in the default help builder.
+     * A small help String that summarizes the function of the command, used in the default help builder,
+     * and shown in the client for Slash Commands.
      */
     protected String help = "no help available";
     
@@ -85,6 +88,8 @@ public abstract class Command
     
     /**
      * An arguments format String for the command, used in the default help builder.
+     * Not supported for SlashCommands.
+     * @see SlashCommand#options
      */
     protected String arguments = null;
     
@@ -127,6 +132,7 @@ public abstract class Command
     /**
      * The aliases of the command, when calling a command these function identically to calling the
      * {@link com.jagrosh.jdautilities.command.Command#name Command.name}.
+     * This options only works for normal commands, not slash commands.
      */
     protected String[] aliases = new String[0];
     
@@ -153,6 +159,7 @@ public abstract class Command
     /**
      * {@code true} if this command should be hidden from the help.
      * <br>Default {@code false}
+     * This won't work for Slash Commands, as they will always show up.
      */
     protected boolean hidden = false;
 
@@ -692,6 +699,7 @@ public abstract class Command
         
         /**
          * Runs a test of the provided {@link java.util.function.Predicate}.
+         * Does not support SlashCommands.
          * 
          * @param  event
          *         The {@link com.jagrosh.jdautilities.command.CommandEvent CommandEvent}

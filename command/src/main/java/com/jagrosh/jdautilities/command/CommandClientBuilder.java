@@ -54,6 +54,9 @@ public class CommandClientBuilder
     private String carbonKey;
     private String botsKey;
     private final LinkedList<Command> commands = new LinkedList<>();
+    private final LinkedList<SlashCommand> slashCommands = new LinkedList<>();
+    private String forcedGuildId = null;
+    private boolean manualUpsert = false;
     private CommandListener listener;
     private boolean useHelp = true;
     private boolean shutdownAutomatically = true;
@@ -75,7 +78,7 @@ public class CommandClientBuilder
     public CommandClient build()
     {
         CommandClient client = new CommandClientImpl(ownerId, coOwnerIds, prefix, altprefix, prefixes, prefixFunction, commandPreProcessFunction, activity, status, serverInvite,
-                                                     success, warning, error, carbonKey, botsKey, new ArrayList<>(commands), useHelp,
+                                                     success, warning, error, carbonKey, botsKey, new ArrayList<>(commands), new ArrayList<>(slashCommands), forcedGuildId, manualUpsert, useHelp,
                                                      shutdownAutomatically, helpConsumer, helpWord, executor, linkedCacheSize, compiler, manager);
         if(listener!=null)
             client.setListener(listener);
@@ -343,6 +346,66 @@ public class CommandClientBuilder
     {
         for(Command command: commands)
             this.addCommand(command);
+        return this;
+    }
+
+    /**
+     * Adds a {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand} and registers it to the
+     * {@link com.jagrosh.jdautilities.command.impl.CommandClientImpl CommandClientImpl} for this session.
+     *
+     * @param  command
+     *         The SlashCommand to add
+     *
+     * @return This builder
+     */
+    public CommandClientBuilder addSlashCommand(SlashCommand command)
+    {
+        slashCommands.add(command);
+        return this;
+    }
+
+    /**
+     * Adds and registers multiple {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand}s to the
+     * {@link com.jagrosh.jdautilities.command.impl.CommandClientImpl CommandClientImpl} for this session.
+     * <br>This is the same as calling {@link com.jagrosh.jdautilities.command.CommandClientBuilder#addSlashCommand(SlashCommand)} multiple times.
+     *
+     * @param  commands
+     *         The Commands to add
+     *
+     * @return This builder
+     */
+    public CommandClientBuilder addSlashCommands(SlashCommand... commands)
+    {
+        for(SlashCommand command: commands)
+            this.addSlashCommand(command);
+        return this;
+    }
+
+    /**
+     * Forces Guild Only for SlashCommands.
+     * This is the same as setting this.guildOnly = true and this.guildId = your value for every command.
+     * Setting this to null disables the feature, but it is off by default.
+     *
+     * @param guildId the guild ID.
+     * @return This Builder
+     */
+    public CommandClientBuilder forceGuildOnly(String guildId)
+    {
+        this.forcedGuildId = guildId;
+        return this;
+    }
+
+    /**
+     * Whether or not to manually upsert slash commands.
+     * This is designed if you want to handle upserting, instead of doing it every boot.
+     * False by default.
+     *
+     * @param manualUpsert your option.
+     * @return This Builder
+     */
+    public CommandClientBuilder setManualUpsert(boolean manualUpsert)
+    {
+        this.manualUpsert = manualUpsert;
         return this;
     }
 

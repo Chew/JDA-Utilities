@@ -15,6 +15,7 @@
  */
 package com.jagrosh.jdautilities.command;
 
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 /**
@@ -35,6 +36,17 @@ public interface CommandListener
      *         The Command that was triggered
      */
     default void onCommand(CommandEvent event, Command command) {}
+
+    /**
+     * Called when a {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand} is triggered
+     * by a {@link net.dv8tion.jda.api.events.interaction.SlashCommandEvent SlashCommandEvent}.
+     *
+     * @param  event
+     *         The SlashCommandEvent that triggered the Command
+     * @param  command
+     *         The SlashCommand that was triggered
+     */
+    default void onSlashCommand(SlashCommandEvent event, SlashCommand command) {}
     
     /**
      * Called when a {@link com.jagrosh.jdautilities.command.Command Command} is triggered
@@ -51,6 +63,22 @@ public interface CommandListener
      *         The Command that was triggered
      */
     default void onCompletedCommand(CommandEvent event, Command command) {}
+
+    /**
+     * Called when a {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand} is triggered
+     * by a {@link net.dv8tion.jda.api.events.interaction.SlashCommandEvent SlashCommandEvent} after it's
+     * completed successfully.
+     *
+     * <p>Note that a <i>successfully</i> completed slash command is one that has not encountered
+     * an error or exception. Calls that do face errors should be handled by
+     * {@link CommandListener#onSlashCommandException(SlashCommandEvent, SlashCommand, Throwable) CommandListener#onSlashCommandException}
+     *
+     * @param  event
+     *         The SlashCommandEvent that triggered the Command
+     * @param  command
+     *         The SlashCommand that was triggered
+     */
+    default void onCompletedSlashCommand(SlashCommandEvent event, SlashCommand command) {}
     
     /**
      * Called when a {@link com.jagrosh.jdautilities.command.Command Command} is triggered
@@ -63,6 +91,18 @@ public interface CommandListener
      *         The Command that was triggered
      */
     default void onTerminatedCommand(CommandEvent event, Command command) {}
+
+    /**
+     * Called when a {@link com.jagrosh.jdautilities.command.SlashCommand Command} is triggered
+     * by a {@link net.dv8tion.jda.api.events.interaction.SlashCommandEvent SlashCommandEvent} but is
+     * terminated before completion.
+     *
+     * @param  event
+     *         The SlashCommandEvent that triggered the Command
+     * @param  command
+     *         The SlashCommand that was triggered
+     */
+    default void onTerminatedSlashCommand(SlashCommandEvent event, SlashCommand command) {}
     
     /**
      * Called when a {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent}
@@ -114,6 +154,27 @@ public interface CommandListener
      *         The Throwable thrown during Command execution
      */
     default void onCommandException(CommandEvent event, Command command, Throwable throwable) {
+        // Default rethrow as a runtime exception.
+        throw throwable instanceof RuntimeException? (RuntimeException)throwable : new RuntimeException(throwable);
+    }
+
+    /**
+     * Called when a {@link com.jagrosh.jdautilities.command.SlashCommand SlashCommand}
+     * catches a {@link java.lang.Throwable Throwable} <b>during execution</b>.
+     *
+     * <p>This doesn't account for exceptions thrown during other pre-checks,
+     * and should not be treated as such!
+     *
+     * The {@link java.lang.NullPointerException NullPointerException} thrown will not be caught by this method!
+     *
+     * @param  event
+     *         The CommandEvent that triggered the Command
+     * @param  command
+     *         The Command that was triggered
+     * @param  throwable
+     *         The Throwable thrown during Command execution
+     */
+    default void onSlashCommandException(SlashCommandEvent event, SlashCommand command, Throwable throwable) {
         // Default rethrow as a runtime exception.
         throw throwable instanceof RuntimeException? (RuntimeException)throwable : new RuntimeException(throwable);
     }

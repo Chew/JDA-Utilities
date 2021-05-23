@@ -28,9 +28,12 @@ import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.internal.utils.Checks;
 import okhttp3.*;
 import org.json.JSONObject;
@@ -78,7 +81,12 @@ public class CommandClientImpl implements CommandClient, EventListener
     private final Function<MessageReceivedEvent, Boolean> commandPreProcessFunction;
     private final String serverInvite;
     private final HashMap<String, Integer> commandIndex;
+    private final HashMap<String, Integer> slashCommandIndex;
     private final ArrayList<Command> commands;
+    private final ArrayList<SlashCommand> slashCommands;
+    private final ArrayList<String> slashCommandIds;
+    private final String forcedGuildId;
+    private final boolean manualUpsert;
     private final String success;
     private final String warning;
     private final String error;
@@ -99,7 +107,7 @@ public class CommandClientImpl implements CommandClient, EventListener
     private int totalGuilds;
 
     public CommandClientImpl(String ownerId, String[] coOwnerIds, String prefix, String altprefix, String[] prefixes, Function<MessageReceivedEvent, String> prefixFunction, Function<MessageReceivedEvent, Boolean> commandPreProcessFunction, Activity activity, OnlineStatus status, String serverInvite,
-                             String success, String warning, String error, String carbonKey, String botsKey, ArrayList<Command> commands,
+                             String success, String warning, String error, String carbonKey, String botsKey, ArrayList<Command> commands, ArrayList<SlashCommand> slashCommands, String forcedGuildId, boolean manualUpsert,
                              boolean useHelp, boolean shutdownAutomatically, Consumer<CommandEvent> helpConsumer, String helpWord, ScheduledExecutorService executor,
                              int linkedCacheSize, AnnotatedModuleCompiler compiler, GuildSettingsManager manager)
     {
@@ -136,7 +144,12 @@ public class CommandClientImpl implements CommandClient, EventListener
         this.carbonKey = carbonKey;
         this.botsKey = botsKey;
         this.commandIndex = new HashMap<>();
+        this.slashCommandIndex = new HashMap<>();
         this.commands = new ArrayList<>();
+        this.slashCommands = new ArrayList<>();
+        this.slashCommandIds = new ArrayList<>();
+        this.forcedGuildId = forcedGuildId;
+        this.manualUpsert = manualUpsert;
         this.cooldowns = new HashMap<>();
         this.uses = new HashMap<>();
         this.linkMap = linkedCacheSize>0 ? new FixedSizeCache<>(linkedCacheSize) : null;
@@ -181,6 +194,12 @@ public class CommandClientImpl implements CommandClient, EventListener
         for(Command command : commands)
         {
             addCommand(command);
+        }
+
+        // Load slash commands
+        for(SlashCommand command : slashCommands)
+        {
+            addSlashCommand(command);
         }
     }
 
@@ -290,6 +309,35 @@ public class CommandClientImpl implements CommandClient, EventListener
                 commandIndex.put(alias.toLowerCase(), index);
         }
         commands.add(index,command);
+    }
+
+    @Override
+    public void addSlashCommand(SlashCommand command)
+    {
+        addSlashCommand(command, slashCommands.size());
+    }
+
+    @Override
+    public void addSlashCommand(SlashCommand command, int index)
+    {
+        if(index>slashCommands.size() || index<0)
+            throw new ArrayIndexOutOfBoundsException("Index specified is invalid: ["+index+"/"+slashCommands.size()+"]");
+        synchronized(slashCommandIndex)
+        {
+            String name = command.getName().toLowerCase();
+            //check for collision
+            if(slashCommandIndex.containsKey(name))
+                throw new IllegalArgumentException("Command added has a name that has already been indexed: \""+name+"\"!");
+            //shift if not append
+            if(index<slashCommands.size())
+            {
+                slashCommandIndex.entrySet().stream().filter(entry -> entry.getValue()>=index).collect(Collectors.toList())
+                    .forEach(entry -> slashCommandIndex.put(entry.getKey(), entry.getValue()+1));
+            }
+            //add
+            slashCommandIndex.put(name, index);
+        }
+        slashCommands.add(index,command);
     }
 
     @Override
@@ -461,6 +509,9 @@ public class CommandClientImpl implements CommandClient, EventListener
         if(event instanceof MessageReceivedEvent)
             onMessageReceived((MessageReceivedEvent)event);
 
+        else if(event instanceof SlashCommandEvent)
+            onSlashCommand((SlashCommandEvent)event);
+
         else if(event instanceof GuildMessageDeleteEvent && usesLinkedDeletion())
             onMessageDelete((GuildMessageDeleteEvent) event);
 
@@ -497,6 +548,22 @@ public class CommandClientImpl implements CommandClient, EventListener
         GuildSettingsManager<?> manager = getSettingsManager();
         if(manager != null)
             manager.init();
+
+        // Upsert slash commands, if not manual
+        if (!manualUpsert)
+        {
+            for (SlashCommand command : slashCommands)
+            {
+                CommandData data = command.buildCommandData();
+
+                if (forcedGuildId != null || (command.isGuildOnly() && command.getGuildId() != null)) {
+                    String guildId = forcedGuildId != null ? forcedGuildId : command.getGuildId();
+                    event.getJDA().getGuildById(guildId).upsertCommand(data).queue(command1 -> slashCommandIds.add(command1.getId()));
+                } else {
+                    event.getJDA().upsertCommand(data).queue(command1 -> slashCommandIds.add(command1.getId()));
+                }
+            }
+        }
 
         sendStats(event.getJDA());
     }
@@ -605,6 +672,25 @@ public class CommandClientImpl implements CommandClient, EventListener
 
         if(listener != null)
             listener.onNonCommandMessage(event);
+    }
+
+    private void onSlashCommand(SlashCommandEvent event)
+    {
+        final SlashCommand command; // this will be null if it's not a command
+        synchronized(slashCommandIndex)
+        {
+            int i = slashCommandIndex.getOrDefault(event.getName().toLowerCase(), -1);
+            command = i != -1? slashCommands.get(i) : null;
+        }
+
+        if(command != null)
+        {
+            if(listener != null)
+                listener.onSlashCommand(event, command);
+            uses.put(command.getName(), uses.getOrDefault(command.getName(), 0) + 1);
+            command.run(event, this);
+            // Command is done
+        }
     }
 
     private void sendStats(JDA jda)
