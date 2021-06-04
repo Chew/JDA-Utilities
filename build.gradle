@@ -35,7 +35,7 @@ allprojects {
     version = versionInfo.values().join('.')
 
     ext {
-        jdaVersion = 'feature~slash-commands-SNAPSHOT'
+        jdaVersion = '4.2.1_267'
         slf4jVersion = '1.7.25'
         okhttpVersion = '3.13.0'
         findbugsVersion = '3.0.2'
@@ -43,7 +43,7 @@ allprojects {
         junitVersion = '4.13.1' // TODO Move to junit 5?
 
         dependencies {
-            jda = { [group: 'com.github.dv8fromtheworld', name: 'jda', version: jdaVersion] }
+            jda = { [group: 'net.dv8tion', name: 'JDA', version: jdaVersion] }
             slf4j = { [group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion] }
             okhttp = { [group: 'com.squareup.okhttp3', name: 'okhttp', version: okhttpVersion] }
             findbugs = { [group: 'com.google.code.findbugs', name: 'jsr305', version: findbugsVersion] }
@@ -89,9 +89,7 @@ allprojects {
     }
 
     repositories {
-        maven { url 'https://jitpack.io' }
         mavenCentral()
-        mavenLocal()
         maven {
             name 'm2-dv8tion'
             url 'https://m2.dv8tion.net/releases'
