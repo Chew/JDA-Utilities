@@ -33,7 +33,8 @@ import java.util.List;
  * 
  * <p>This intends to mimic the {@link Command command} with minimal breaking changes,
  * to make migration easy and smooth.</p>
- * <p>Breaking changes are documented here: https://github.</p>
+ * <p>Breaking changes are documented
+ * <a href="https://github.com/Chew/JDA-Chewtils/wiki/Command-to-SlashCommand-Migration">here</a>.</p>
  * {@link SlashCommand#execute(SlashCommandEvent) #execute(CommandEvent)} body:
  * 
  * <pre><code> public class ExampleCmd extends Command {
@@ -60,7 +61,7 @@ import java.util.List;
  *     now being cleared to run, executes and performs whatever lies in the abstract body method.</li>
  * </ul>
  * 
- * @author John Grosh (jagrosh)
+ * @author Olivia (Chew)
  */
 public abstract class SlashCommand extends Command
 {
@@ -323,9 +324,7 @@ public abstract class SlashCommand extends Command
         CommandData data = new CommandData(getName(), getHelp());
         if (!getOptions().isEmpty())
         {
-            for (OptionData optionData : getOptions()) {
-                data.addOption(optionData);
-            }
+            data.addOptions(getOptions());
         }
         if (children.length != 0)
         {
@@ -334,11 +333,9 @@ public abstract class SlashCommand extends Command
                 SubcommandData subcommandData = new SubcommandData(child.getName(), child.getHelp());
                 if (!getOptions().isEmpty())
                 {
-                    for (OptionData optionData : child.getOptions()) {
-                        subcommandData.addOption(optionData);
-                    }
+                    subcommandData.addOptions(child.getOptions());
                 }
-                data.addSubcommand(subcommandData);
+                data.addSubcommands(subcommandData);
             }
         }
 
