@@ -33,7 +33,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
 import net.dv8tion.jda.internal.utils.Checks;
 import okhttp3.*;
 import org.json.JSONObject;
@@ -558,7 +558,17 @@ public class CommandClientImpl implements CommandClient, EventListener
 
                 if (forcedGuildId != null || (command.isGuildOnly() && command.getGuildId() != null)) {
                     String guildId = forcedGuildId != null ? forcedGuildId : command.getGuildId();
-                    event.getJDA().getGuildById(guildId).upsertCommand(data).queue(command1 -> slashCommandIds.add(command1.getId()));
+                    Guild guild = event.getJDA().getGuildById(guildId);
+                    if (guild == null) {
+                        LOG.error("Could not find guild with specified ID: " + forcedGuildId + ". Not going to upsert.");
+                        continue;
+                    }
+                    List<CommandPrivilege> privileges = command.buildPrivileges(this);
+                    guild.upsertCommand(data).queue(command1 -> {
+                        slashCommandIds.add(command1.getId());
+                        if (!privileges.isEmpty())
+                            command1.updatePrivileges(guild, privileges).queue();
+                    });
                 } else {
                     event.getJDA().upsertCommand(data).queue(command1 -> slashCommandIds.add(command1.getId()));
                 }

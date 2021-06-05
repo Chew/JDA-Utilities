@@ -24,50 +24,103 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.interactions.commands.privileges.CommandPrivilege;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <h1><b>Slash Commands In JDA-Chewtils</b></h1>
- * 
+ *
  * <p>This intends to mimic the {@link Command command} with minimal breaking changes,
  * to make migration easy and smooth.</p>
  * <p>Breaking changes are documented
  * <a href="https://github.com/Chew/JDA-Chewtils/wiki/Command-to-SlashCommand-Migration">here</a>.</p>
  * {@link SlashCommand#execute(SlashCommandEvent) #execute(CommandEvent)} body:
- * 
+ *
  * <pre><code> public class ExampleCmd extends Command {
- *      
+ *
  *      public ExampleCmd() {
  *          this.name = "example";
  *          this.help = "gives an example of commands do";
  *      }
- *      
+ *
  *      {@literal @Override}
  *      protected void execute(SlashCommandEvent event) {
  *          event.reply("Hey look! This would be the bot's reply if this was a command!").queue();
  *      }
- *      
+ *
  * }</code></pre>
- * 
+ *
  * Execution is with the provision of the SlashCommandEvent is performed in two steps:
  * <ul>
  *     <li>{@link SlashCommand#run(SlashCommandEvent, CommandClient) run} - The command runs
- *     through a series of conditionals, automatically terminating the command instance if one is not met, 
+ *     through a series of conditionals, automatically terminating the command instance if one is not met,
  *     and possibly providing an error response.</li>
- *     
+ *
  *     <li>{@link SlashCommand#execute(SlashCommandEvent) execute} - The command,
  *     now being cleared to run, executes and performs whatever lies in the abstract body method.</li>
  * </ul>
- * 
+ *
  * @author Olivia (Chew)
  */
 public abstract class SlashCommand extends Command
 {
     /**
+     * This option is deprecated in favor of {@link #enabledRoles}
+     * Please replace this with this.enabledRoles = new String[]{Roles};
+     * While this check is still done, it's better to let Discord do the work.<br>
+     * This deprecation can be ignored if you intend to support normal and slash commands.
+     */
+    @Deprecated
+    protected String requiredRole = null;
+
+    /**
+     * The list of role IDs who can use this Slash Command.
+     * Because command privileges are restricted to a Guild, these will not take effect for Global commands.<br>
+     * This is useless if {@link #defaultEnabled} isn't false.
+     */
+    protected String[] enabledRoles = new String[]{};
+
+    /**
+     * The list of user IDs who can use this Slash Command.
+     * Because command privileges are restricted to a Guild, these will not take effect for Global commands.<br>
+     * This is useless if {@link #defaultEnabled} isn't false.
+     */
+    protected String[] enabledUsers = new String[]{};
+
+    /**
+     * The list of role IDs who cannot use this Slash Command.
+     * Because command privileges are restricted to a Guild, these will not take effect for Global commands.<br>
+     * This is useless if {@link #defaultEnabled} isn't true.
+     */
+    protected String[] disabledRoles = new String[]{};
+
+    /**
+     * The list of user IDs who cannot use this Slash Command.
+     * Because command privileges are restricted to a Guild, these will not take effect for Global commands.<br>
+     * This is useless if {@link #defaultEnabled} isn't true.
+     */
+    protected String[] disabledUsers = new String[]{};
+
+    /**
+     * Whether this command is disabled by default.
+     * If disabled, you must give yourself permission to use it.<br>
+     * In order for {@link #enabledUsers} and {@link #enabledRoles} to work, this must be set to false.
+     * @see net.dv8tion.jda.api.requests.restaction.CommandCreateAction#setDefaultEnabled(boolean)
+     * @see SlashCommand#enabledRoles
+     * @see SlashCommand#enabledUsers
+     */
+    protected boolean defaultEnabled = true;
+
+    /**
      * The child commands of the command. These are used in the format {@code /<parent name>
      * <child name>}.
+     * This is synonymous with sub commands. Additionally, sub-commands cannot have children.<br>
      */
     protected SlashCommand[] children = new SlashCommand[0];
 
@@ -79,7 +132,22 @@ public abstract class SlashCommand extends Command
     protected String guildId = null;
 
     /**
+     * The subcommand/child group this is associated with.
+     * Will be in format {@code /<parent name> <subcommandGroup name> <subcommand name>}.
+     *
+     * <b>This only works in a child/subcommand.</b>
+     *
+     * To instantiate: <code>{@literal new SubcommandGroupData(name, description)}</code><br>
+     * It's important the instantiations are the same across children if you intend to keep them in the same group.
+     *
+     * Can be null, and it will not be assigned to a group.
+     */
+    protected SubcommandGroupData subcommandGroup = null;
+
+    /**
      * An array list of OptionData.
+     *
+     * <b>This is incompatible with children. You cannot have a child AND options.</b>
      *
      * This is to specify different options for arguments and the stuff.
      *
@@ -96,12 +164,12 @@ public abstract class SlashCommand extends Command
      * The command client to be retrieved if needed.
      */
     protected CommandClient client;
-    
+
     /**
      * The main body method of a {@link SlashCommand SlashCommand}.
-     * <br>This is the "response" for a successful 
+     * <br>This is the "response" for a successful
      * {@link SlashCommand#run(SlashCommandEvent, CommandClient) #run(CommandEvent)}.
-     * 
+     *
      * @param  event
      *         The {@link SlashCommandEvent SlashCommandEvent} that
      *         triggered this Command
@@ -115,6 +183,7 @@ public abstract class SlashCommand extends Command
      * <b>
      *     Because this is a SlashCommand, this is called, but does nothing.
      *     You can still override this if you want to have a separate response for normal [prefix][name].
+     *     Keep in mind you must add it as a Command via {@link CommandClientBuilder#addCommand(Command)} for it to work properly.
      * </b>
      *
      * @param  event
@@ -123,12 +192,12 @@ public abstract class SlashCommand extends Command
      */
     @Override
     protected void execute(CommandEvent event) {}
-    
+
     /**
      * Runs checks for the {@link SlashCommand SlashCommand} with the
      * given {@link SlashCommandEvent SlashCommandEvent} that called it.
      * <br>Will terminate, and possibly respond with a failure message, if any checks fail.
-     * 
+     *
      * @param  event
      *         The SlashCommandEvent that triggered this Command
      * @param  client
@@ -139,10 +208,23 @@ public abstract class SlashCommand extends Command
         // set the client
         this.client = client;
 
+        // child check
+        if(event.getSubcommandName() != null)
+        {
+            for(SlashCommand cmd: children)
+            {
+                if(cmd.isCommandFor(event.getSubcommandName()))
+                {
+                    cmd.run(event, client);
+                    return;
+                }
+            }
+        }
+
         // owner check
         if(ownerCommand && !(isOwner(event, client)))
         {
-            terminate(event,null, client);
+            terminate(event, "Only an owner may run this command. Sorry.", client);
             return;
         }
 
@@ -152,7 +234,7 @@ public abstract class SlashCommand extends Command
             terminate(event, "That command cannot be used in this channel!", client);
             return;
         }
-        
+
         // required role check
         if(requiredRole!=null)
             if(!(event.getChannelType() == ChannelType.TEXT) || event.getMember().getRoles().stream().noneMatch(r -> r.getName().equalsIgnoreCase(requiredRole)))
@@ -160,7 +242,7 @@ public abstract class SlashCommand extends Command
                 terminate(event, client.getError()+" You must have a role called `"+requiredRole+"` to use that!", client);
                 return;
             }
-        
+
         // availability check
         if(event.getChannelType()==ChannelType.TEXT)
         {
@@ -230,7 +312,7 @@ public abstract class SlashCommand extends Command
             terminate(event, client.getError()+" This command cannot be used in direct messages", client);
             return;
         }
-        
+
         // cooldown check, ignoring owner
         if(cooldown>0 && !(isOwner(event, client)))
         {
@@ -243,7 +325,7 @@ public abstract class SlashCommand extends Command
             }
             else client.applyCooldown(key, cooldown);
         }
-        
+
         // run
         try {
             execute(event);
@@ -302,6 +384,73 @@ public abstract class SlashCommand extends Command
     }
 
     /**
+     * Gets the enabled roles for this Slash Command.
+     * A user MUST have a role for a command to be ran.
+     *
+     * @return a list of String role IDs
+     */
+    public String[] getEnabledRoles()
+    {
+        return enabledRoles;
+    }
+
+    /**
+     * Gets the enabled users for this Slash Command.
+     * A user with an ID in this list is required for the command to be ran.
+     *
+     * @return a list of String user IDs
+     */
+    public String[] getEnabledUsers()
+    {
+        return enabledUsers;
+    }
+
+    /**
+     * Gets the disabled roles for this Slash Command.
+     * A user with this role may not run this command.
+     *
+     * @return a list of String role IDs
+     */
+    public String[] getDisabledRoles()
+    {
+        return disabledRoles;
+    }
+
+    /**
+     * Gets the disabled users for this Slash Command.
+     * Uses in this list may not run this command.
+     *
+     * @return a list of String user IDs
+     */
+    public String[] getDisabledUsers()
+    {
+        return disabledUsers;
+    }
+
+    /**
+     * Whether or not this command is enabled by default.
+     * If disabled by default, you MUST enable {@link #enabledRoles roles}
+     * or {@link #enabledUsers users} to access it.
+     * This does NOT hide it, it simply appears greyed out.
+     *
+     * @return a list of String user IDs
+     */
+    public boolean isDefaultEnabled()
+    {
+        return defaultEnabled;
+    }
+
+    /**
+     * Gets the subcommand data associated with this subcommand.
+     *
+     * @return subcommand data
+     */
+    public SubcommandGroupData getSubcommandGroup()
+    {
+        return subcommandGroup;
+    }
+
+    /**
      * Gets the options associated with this command.
      *
      * @return the OptionData array for options
@@ -321,25 +470,93 @@ public abstract class SlashCommand extends Command
      */
     public CommandData buildCommandData()
     {
+        // Make the command data
         CommandData data = new CommandData(getName(), getHelp());
         if (!getOptions().isEmpty())
         {
             data.addOptions(getOptions());
         }
+        // Check for children
         if (children.length != 0)
         {
+            // Temporary map for easy group storage
+            Map<String, SubcommandGroupData> groupData = new HashMap<>();
             for (SlashCommand child : children)
             {
+                // Create subcommand data
                 SubcommandData subcommandData = new SubcommandData(child.getName(), child.getHelp());
-                if (!getOptions().isEmpty())
+                // Add options
+                if (!child.getOptions().isEmpty())
                 {
                     subcommandData.addOptions(child.getOptions());
                 }
-                data.addSubcommands(subcommandData);
+
+                // If there's a subcommand group
+                if (child.getSubcommandGroup() != null)
+                {
+                    SubcommandGroupData group = child.getSubcommandGroup();
+
+                    SubcommandGroupData newData = groupData.getOrDefault(group.getName(), group)
+                        .addSubcommands(subcommandData);
+
+                    groupData.put(group.getName(), newData);
+                }
+                // Just add to the command
+                else
+                {
+                    data.addSubcommands(subcommandData);
+                }
             }
+            if (!groupData.isEmpty())
+                data.addSubcommandGroups(groupData.values());
         }
 
+        // Default enabled is synonymous with hidden now.
+        data.setDefaultEnabled(isDefaultEnabled());
+
         return data;
+    }
+
+    /**
+     * Builds CommandPrivilege for the SlashCommand permissions.
+     * This code is executed after upsertion to update the permissions.
+     * <br>
+     * <b>The max amount of privilege is 10, keep this in mind.</b>
+     *
+     * Useful for manual upserting.
+     *
+     * @param client the command client for owner checking.
+     *               if null, owner checks won't be performed
+     * @return the built privilege data
+     */
+    public List<CommandPrivilege> buildPrivileges(@Nullable CommandClient client)
+    {
+        List<CommandPrivilege> privileges = new ArrayList<>();
+        // Privilege Checks
+        for (String role : getEnabledRoles())
+            privileges.add(CommandPrivilege.enableRole(role));
+        for (String user : getEnabledUsers())
+            privileges.add(CommandPrivilege.enableUser(user));
+        for (String role : getDisabledRoles())
+            privileges.add(CommandPrivilege.disableRole(role));
+        for (String user : getDisabledUsers())
+            privileges.add(CommandPrivilege.disableUser(user));
+        // Co/Owner checks
+        if (isOwnerCommand() && client != null)
+        {
+            // Clear array, we have the priority here.
+            privileges.clear();
+            // Add owner
+            privileges.add(CommandPrivilege.enableUser(client.getOwnerId()));
+            // Add co-owners
+            for (String user : client.getCoOwnerIds())
+                privileges.add(CommandPrivilege.enableUser(user));
+        }
+
+        if (privileges.size() > 10)
+            privileges = privileges.subList(0, 10);
+
+        return privileges;
     }
 
     /**
