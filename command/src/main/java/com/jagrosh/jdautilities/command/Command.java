@@ -108,7 +108,7 @@ public abstract class Command
     /**
      * {@code true} if the command may only be used by a User with an ID matching the
      * Owners or any of the CoOwners.<br>
-     * If enabled for a Slash Command, the owners will be added to the SlashCommand.
+     * If enabled for a Slash Command, only owners (owner + up to 9 co-owners) will be added to the SlashCommand.
      * All other permissions will be ignored.
      * <br>Default {@code false}.
      */
