@@ -453,6 +453,21 @@ public class EmbedPaginator extends Menu{
             this.embeds.addAll(Arrays.asList(embeds));
             return this;
         }
+        
+        /**
+         * Adds the collection of provided {@link net.dv8tion.jda.api.entities.MessageEmbed MessageEmbeds} to the list
+         * of items to paginate.
+         * 
+         * @param  embeds
+         *         The collection of MessageEmbeds to add
+         *         
+         * @return This builder
+         */
+        public Builder addItems(Collection<MessageEmbed> embeds)
+        {
+            this.embeds.addAll(embeds);
+            return this;
+        }
 
         /**
          * Adds {@link net.dv8tion.jda.api.entities.MessageEmbed MessageEmbeds} to the list of items to paginate.
@@ -494,6 +509,22 @@ public class EmbedPaginator extends Menu{
             return this;
         }
 
+        /**
+         * Sets the {@link net.dv8tion.jda.api.entities.MessageEmbed MessageEmbeds} to paginate.
+         * <br>This method clears all previously set items before adding the provided collection of MessageEmbeds.
+         * 
+         * @param  embeds
+         *         The collection of MessageEmbeds to set.
+         *         
+         * @return This builder
+         */
+        public Builder setItems(Collection<MessageEmbed> embeds)
+        {
+            this.embeds.clear();
+            addItems(embeds);
+            return this;
+        }
+        
         /**
          * Sets the {@link net.dv8tion.jda.api.entities.MessageEmbed MessageEmbeds} to paginate.
          * <br>This method clears all previously set items before setting each String as a new MessageEmbed.
