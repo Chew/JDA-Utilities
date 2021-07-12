@@ -12,3 +12,6 @@ contact_links:
   - name: Releases
     url: https://github.com/Chew/JDA-Chewtils/releases
     about: "The latest releases of JDA-Chewtils can be found here."
+  - name: Discussions
+    url: https://github.com/Chew/JDA-Chewtils/discussions
+    about: "Our Discussions are the best place for asking questions or sharing your setups with others."
