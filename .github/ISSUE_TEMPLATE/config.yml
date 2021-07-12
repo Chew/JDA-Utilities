@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discord Server
+    url: https://discord.gg/SUGVxJpg8r
+    about: "Join the Discord Server for quick support."
+  - name: Wiki
+    url: https://github.com/Chew/JDA-Chewtils/wiki
+    about: "Check the JDA-Chewtils wiki for useful information."
+  - name: Migrate from JDA-Utilities
+    url: https://github.com/Chew/JDA-Chewtils/wiki/Migrating-from-JDA-Utilities
+    about: "Want to switch over from JDA-Utilities? This page has you covered!"
+  - name: Releases
+    url: https://github.com/Chew/JDA-Chewtils/releases
+    about: "The latest releases of JDA-Chewtils can be found here."
