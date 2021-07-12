@@ -1,0 +1,46 @@
+name: Bug Report
+description: Found a bug? Report it with this template.
+
+body:
+- type: markdown
+  attributes:
+    value: |-
+      Thank you for opening a Bug report!
+      Please note that the issue tracker is reserved for issues, errors and feature requests.
+      If you want to make a feature request, use the [Feature request]() template instead!
+      
+      - For examples, check the [examples module]() or the list of [JDA-Utilities projects.
+      - For questions join the [Discord Server of Chew](https://discord.gg/SUGVxJpg8r) and ask in the `#jda-chewtils` channel.  
+        **Do not contact the JDA-Team for questions regarding JDA-Chewtils!**
+      - For general programming questions ask on [StackOwnerflow](https://stackoverflow.com/questions/tagged/java) instead.
+- type: checkboxes
+  attributes:
+    label: Issue Checklist
+    description: |-
+      Please follow the following steps before opening this issue.
+      Issues that do not complete the checklist may be closed without any help.
+    options:
+    - label: I have checked for similar issues on the [Issue tracker](https://github.com/Chew/JDA-Chewtils/issues)
+      required: true
+    - label: I have updated to the [latest version](https://github.com/Chew/JDA-Chewtils/releases) of JDA-Chewtils.
+      required: true
+    - label: I have checked the branches or the maintainer's PRs for upcoming bug fixes.
+      required: true
+- type: dropdown
+  attributes:
+    label: Affected Modules
+    description: Which modules do you have issues with? Multiple selections possible.
+    multiple: true
+    options:
+    - Command
+    - Commons
+    - Menu
+    - OAuth2
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Description
+    description: |-
+      Provide a detailed explanation about your Bug report including any errors.
+      Please make sure that errors and code-snippets are either put into code blocks or shared through sites such as https://hastebin.de
