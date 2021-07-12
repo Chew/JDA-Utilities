@@ -7,9 +7,11 @@ body:
     value: |-
       Thank you for opening a Bug report!
       Please note that the issue tracker is reserved for issues, errors and feature requests.
-      If you want to make a feature request, use the [Feature request]() template instead!
       
-      - For examples, check the [examples module]() or the list of [JDA-Utilities projects.
+      **Want to make a Feature request instead?**
+      Use the [Feature request](https://github.com/Chew/JDA-Chewtils/issues/new?template=feature_request.yml) template!
+      
+      - For examples, check the [examples module](https://github.com/Chew/JDA-Chewtils/tree/master/examples).
       - For questions join the [Discord Server of Chew](https://discord.gg/SUGVxJpg8r) and ask in the `#jda-chewtils` channel.  
         **Do not contact the JDA-Team for questions regarding JDA-Chewtils!**
       - For general programming questions ask on [StackOwnerflow](https://stackoverflow.com/questions/tagged/java) instead.
@@ -43,4 +45,4 @@ body:
     label: Description
     description: |-
       Provide a detailed explanation about your Bug report including any errors.
-      Please make sure that errors and code-snippets are either put into code blocks or shared through sites such as https://hastebin.de
+      Please make sure that errors and code-snippets are either shared through code blocks or sites such as https://hastebin.de
