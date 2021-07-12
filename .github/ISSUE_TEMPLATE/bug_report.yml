@@ -14,7 +14,7 @@ body:
       - For examples, check the [examples module](https://github.com/Chew/JDA-Chewtils/tree/master/examples).
       - For questions join the [Discord Server of Chew](https://discord.gg/SUGVxJpg8r) and ask in the `#jda-chewtils` channel.  
         **Do not contact the JDA-Team for questions regarding JDA-Chewtils!**
-      - For general programming questions ask on [StackOwnerflow](https://stackoverflow.com/questions/tagged/java) instead.
+      - For general programming questions ask on [StackOverflow](https://stackoverflow.com/questions/tagged/java) instead.
 - type: checkboxes
   attributes:
     label: Issue Checklist
@@ -45,4 +45,4 @@ body:
     label: Description
     description: |-
       Provide a detailed explanation about your Bug report including any errors.
-      Please make sure that errors and code-snippets are either shared through code blocks or sites such as https://hastebin.de
+      Please make sure that errors and code-snippets are either shared through code blocks or sites such as https://paste.gg
