@@ -1,0 +1,48 @@
+name: Feature Request
+description: Have an idea for a new feature? Use this template.
+
+body:
+- type: markdown
+  attributes:
+    value: |-
+      Thank you for opening a Feature request!
+      Please note that the issue tracker is reserved for issues, errors and feature requests regarding JDA-Chewtils.
+      
+      **Want to make a Bug report instead?**
+      Use the [Bug Report](https://github.com/Chew/JDA-Chewtils/issues/new?template=bug_report.yml) template!
+      
+      - For examples, check the [examples module](https://github.com/Chew/JDA-Chewtils/tree/master/examples).
+      - For questions join the [Discord Server of Chew](https://discord.gg/SUGVxJpg8r) and ask in the `#jda-chewtils` channel.  
+        **Do not contact the JDA-Team for questions regarding JDA-Chewtils!**
+      - For general programming questions ask on [StackOwnerflow](https://stackoverflow.com/questions/tagged/java) instead.
+- type: checkboxes
+  attributes:
+    label: Issue Checklist
+    description: |-
+      Please follow the following steps before opening this issue.
+      Issues that do not complete the checklist may be closed without any help.
+    options:
+    - label: I have checked for similar issues on the [Issue tracker](https://github.com/Chew/JDA-Chewtils/issues)
+      required: true
+    - label: I have updated to the [latest version](https://github.com/Chew/JDA-Chewtils/releases) of JDA-Chewtils.
+      required: true
+    - label: I have checked the branches or the maintainer's PRs for upcoming features and updates.
+      required: true
+- type: dropdown
+  attributes:
+    label: Affected Modules
+    description: Which modules is this Feature request for? Multiple selections possible.
+    multiple: true
+    options:
+    - Command
+    - Commons
+    - Menu
+    - OAuth2
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Description
+    description: |-
+      Provide a detailed explanation about your Feature request including any code-examples and use-cases.
+      Please make sure that code-snippets are either shared through code blocks or sites such as https://hastebin.de
