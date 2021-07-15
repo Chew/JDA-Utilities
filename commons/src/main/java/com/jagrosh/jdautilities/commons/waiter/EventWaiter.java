@@ -24,6 +24,7 @@ import net.dv8tion.jda.internal.utils.Checks;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Math;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -237,7 +238,7 @@ public class EventWaiter implements EventListener
             if(waitingEvents.containsKey(c))
             {
                 Set<WaitingEvent> set = waitingEvents.get(c);
-                WaitingEvent[] toRemove = set.toArray(new WaitingEvent[set.size()]);
+                WaitingEvent[] toRemove = set.toArray(new WaitingEvent[Math.max(0, set.size())]);
 
                 // WaitingEvent#attempt invocations that return true have passed their condition tests
                 // and executed the action. We filter the ones that return false out of the toRemove and
